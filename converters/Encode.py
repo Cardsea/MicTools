@@ -1,13 +1,25 @@
 import numpy as np
 import sounddevice as sd
 from PIL import Image
+import time
+import math
 
 SAMPLE_RATE = 44100  # Hz
-DURATION = 2  # seconds
+DURATION = 5  # seconds
 
-print("🎙️ Recording raw audio...")
+# Calculate optimal square size based on total samples
+total_samples = SAMPLE_RATE * DURATION  # Total number of samples in 5 seconds
+size = int(math.sqrt(total_samples))  # Square root to get a reasonable square dimension
+size = size - (size % 2)  # Make it even for better visualization
 
-# Record audio
+print("🎙️ Recording will start in:")
+for i in range(3, 0, -1):
+    print(f"{i}...")
+    time.sleep(1)
+
+print("🎙️ Recording raw audio for 5 seconds (mono)...")
+
+# Record audio in mono (1 channel)
 audio = sd.rec(int(SAMPLE_RATE * DURATION), samplerate=SAMPLE_RATE, channels=1, dtype='float32')
 sd.wait()
 
@@ -16,8 +28,7 @@ print("✅ Audio recorded, creating amplitude visualization...")
 # Get absolute amplitudes and amplify them significantly
 audio_flat = np.abs(audio.flatten()) * 50
 
-# Make it square (512x512)
-size = 512
+# Make it square (size x size)
 audio_chunk = audio_flat[:size*size]  # Take what we need
 if len(audio_chunk) < size*size:
     # Pad with zeros if we don't have enough samples
@@ -35,7 +46,7 @@ else:
 
 # Create and show image
 img = Image.fromarray(image_data, mode='L')
-img.save('mic_amplitude.png')
+img.save('amplitude converter/outputfiles/mic_amplitude_mono.png')
 img.show()
 
-print("🖼️ Done! Higher amplitude = brighter pixels. Simple as that.")
+print(f"🖼️ Done! Created {size}x{size} mono image. Higher amplitude = brighter pixels.")
